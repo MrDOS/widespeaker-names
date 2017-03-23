@@ -1,0 +1,21 @@
+#! /bin/sh
+
+# Collect top baby names by gender, strip the names from the markup, and merge.
+
+SOURCE="http://names.mongabay.com/baby-names/application/top-%s-US-%s.html"
+YEAR=1984
+GENDERS="F M"
+NAME_COUNT=256
+
+for gender in $GENDERS
+do
+    url="`echo "$SOURCE" | sed -e 's/%s/'$gender'/' -e 's/%s/'$YEAR'/'`"
+    curl "$url" \
+        | grep -oE '<td>[A-Z][a-z]+</td>' \
+        | perl -pe 's/<\/?td>//g' \
+        | tail -n +4 \
+        > "$gender"
+done
+
+paste -d '\n' $GENDERS | head -n $NAME_COUNT >names.txt
+rm $GENDERS

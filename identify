@@ -1,0 +1,25 @@
+#! /bin/sh
+
+# What should we call this unit?
+
+macaddress ()
+{
+    if [ "`uname`" = "Darwin" ]
+    then
+        networksetup -getmacaddress en0 | grep -oE '([0-9a-f]{2}:?){6}'
+    else
+        cat /sys/class/net/eth0/address
+    fi
+}
+
+if [ ! -r "names.txt" ]
+then
+    cat <<ERR 1>&2
+$0: cannot find "names.txt"! Please run "collect" first.
+ERR
+    exit 1
+fi
+
+hex_id=`macaddress | cut -d ':' -f 6 | tr '[[:lower:]]' '[[:upper:]]'`
+dec_id=`printf %d 0x$hex_id`
+<names.txt tail -n +$dec_id | head -n 1
